@@ -85,6 +85,15 @@ To ensure a **zero-setup experience for evaluators**:
 
 ---
 
+⚖️ Assumptions & Trade-offs
+
+Chose Next.js API routes over a separate Express/Node server to keep the setup minimal and self-contained — one npm run dev is all that's needed.
+MongoDB is fully optional. The app automatically falls back to data/tasks.json if no database is configured, so evaluators can run it with zero setup.
+Went slightly beyond the suggested 1–2 hour scope to demonstrate real-world patterns (hybrid persistence, optimistic UI, Docker). The core CRUD functionality is self-contained and straightforward to review independently.
+Used in-memory + file-based fallback instead of requiring a hosted DB, as the assignment explicitly permitted non-database storage.
+
+---
+
 ## 🛠️ Tech Stack
 
 * React 19
