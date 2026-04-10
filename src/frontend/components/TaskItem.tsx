@@ -1,12 +1,15 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Circle,
-  CheckCircle2,
   Trash2, 
   Edit2, 
-  X
+  Check,
+  X,
+  Square,
+  CheckSquare,
+  Clock
 } from 'lucide-react';
 
 interface Task {
@@ -18,106 +21,100 @@ interface Task {
 
 interface TaskItemProps {
   task: Task;
-  editingId: string | null;
-  editValue: string;
   onToggle: (id: string, stat: boolean) => void;
   onDelete: (id: string) => void;
-  onEdit: (task: Task) => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-  setEditValue: (val: string) => void;
-  editInputRef: React.RefObject<HTMLInputElement | null>;
+  onSaveEdit: (id: string, title: string) => void;
 }
 
 export default function TaskItem({
   task,
-  editingId,
-  editValue,
   onToggle,
   onDelete,
-  onEdit,
   onSaveEdit,
-  onCancelEdit,
-  setEditValue,
-  editInputRef
 }: TaskItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(task.title);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      editInputRef.current?.focus();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    if (editValue.trim() && editValue !== task.title) {
+      onSaveEdit(task._id, editValue);
+    }
+    setIsEditing(false);
+  };
+
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      className={`card p-4 flex items-center gap-4 group ${
-        task.completed ? 'opacity-60 bg-slate-50' : 'bg-white'
-      }`}
+      className="card-clean p-4 flex items-start gap-4 group cursor-default"
     >
       <button
         onClick={() => onToggle(task._id, task.completed)}
-        className={`flex-shrink-0 transition-all ${
-          task.completed ? 'text-blue-600' : 'text-slate-300 hover:text-slate-400'
+        className={`transition-all duration-300 mt-0.5 flex-shrink-0 active:scale-95 ${
+          task.completed ? 'text-blue-500' : 'text-slate-200 hover:text-slate-400'
         }`}
       >
-        {task.completed ? <CheckCircle2 size={24} /> : <Circle size={24} />}
+        {task.completed ? <CheckSquare size={20} strokeWidth={2.5} /> : <Square size={20} strokeWidth={1.5} />}
       </button>
 
       <div className="flex-1 min-w-0">
-        {editingId === task._id ? (
-          <div className="flex gap-2">
+        {isEditing ? (
+          <div className="flex items-center gap-2">
             <input
               ref={editInputRef}
               type="text"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSave}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') onSaveEdit();
-                if (e.key === 'Escape') onCancelEdit();
+                if (e.key === 'Enter') handleSave();
+                if (e.key === 'Escape') setIsEditing(false);
               }}
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-md px-3 py-1 outline-none focus:border-blue-500 text-sm font-medium"
+              className="w-full bg-slate-50 border border-blue-400 rounded-md px-3 py-1 text-sm font-semibold text-slate-900 outline-none"
             />
           </div>
         ) : (
-          <div className="flex flex-col">
+          <div className="space-y-1">
             <span 
-              onDoubleClick={() => onEdit(task)}
-              className={`text-sm font-semibold truncate transition-colors cursor-pointer ${
-                task.completed ? 'text-slate-500 line-through' : 'text-slate-800'
+              onDoubleClick={() => setIsEditing(true)}
+              className={`text-[15px] font-bold tracking-tight block cursor-text select-none transition-all duration-500 leading-snug ${
+                task.completed ? 'text-slate-300 line-through decoration-slate-200 decoration-1' : 'text-slate-700'
               }`}
             >
               {task.title}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium">
-              Created {new Date(task.createdAt).toLocaleDateString()}
-            </span>
+            <div className="flex items-center gap-2 text-[10px] text-slate-300 font-bold uppercase tracking-widest">
+               <Clock size={10} />
+               <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {editingId === task._id ? (
-          <>
-            <button onClick={onSaveEdit} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-              <CheckCircle2 size={16} />
-            </button>
-            <button onClick={onCancelEdit} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
-              <X size={16} />
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => onEdit(task)}
-              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-            >
-              <Edit2 size={16} />
-            </button>
-            <button
-              onClick={() => onDelete(task._id)}
-              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-            >
-              <Trash2 size={16} />
-            </button>
-          </>
-        )}
+      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
+          title="Edit Entry"
+        >
+          <Edit2 size={13} />
+        </button>
+        <button
+          onClick={() => onDelete(task._id)}
+          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+          title="Archive Task"
+        >
+          <Trash2 size={13} />
+        </button>
       </div>
     </motion.div>
   );

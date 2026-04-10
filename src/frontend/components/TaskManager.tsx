@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Loader2, 
-  Search, 
-  CheckCircle,
-  Circle,
-  Filter,
-  Trash2,
-  Calendar
-} from 'lucide-react';
+import { Loader2, Plus, Search, ClipboardList, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import TaskItem from './TaskItem';
@@ -32,18 +23,14 @@ export default function TaskManager() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
-
-  const editInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('/api/tasks');
+      const response = await axios.get('/tasks');
       setTasks(response.data);
     } catch (err: any) {
-      toast.error('Failed to load tasks');
+      toast.error('Could not load tasks');
     } finally {
       setIsLoading(false);
     }
@@ -55,19 +42,16 @@ export default function TaskManager() {
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskTitle.trim()) {
-      toast.error('Task title is required');
-      return;
-    }
+    if (!newTaskTitle.trim()) return;
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post('/api/tasks', { title: newTaskTitle.trim() });
+      const response = await axios.post('/tasks', { title: newTaskTitle.trim() });
       setTasks([response.data, ...tasks]);
       setNewTaskTitle('');
-      toast.success('Task added successfully');
+      toast.success('Task created');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to create task');
+      toast.error('Failed to add task');
     } finally {
       setIsSubmitting(false);
     }
@@ -75,152 +59,156 @@ export default function TaskManager() {
 
   const handleToggleTask = async (taskId: string, currentStatus: boolean) => {
     try {
-      // Optimistic Update
       setTasks(prev => prev.map(t => t._id === taskId ? { ...t, completed: !currentStatus } : t));
-      await axios.patch(`/api/tasks/${taskId}`, { completed: !currentStatus });
+      await axios.patch(`/tasks/${taskId}`, { completed: !currentStatus });
     } catch (err: any) {
-      // Rollback
       setTasks(prev => prev.map(t => t._id === taskId ? { ...t, completed: currentStatus } : t));
-      toast.error('Update failed');
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
     try {
       setTasks(prev => prev.filter(t => t._id !== taskId));
-      await axios.delete(`/api/tasks/${taskId}`);
-      toast.success('Task deleted');
+      await axios.delete(`/tasks/${taskId}`);
     } catch (err: any) {
       fetchTasks();
-      toast.error('Delete failed');
     }
   };
 
-  const handleUpdateTitle = async () => {
-    if (!editingId || !editValue.trim()) {
-      setEditingId(null);
-      return;
-    }
+  const handleUpdateTitle = async (id: string, newTitle: string) => {
     try {
-      const response = await axios.patch(`/api/tasks/${editingId}`, { title: editValue.trim() });
-      setTasks(prev => prev.map(t => t._id === editingId ? { ...t, title: response.data.title } : t));
-      setEditingId(null);
-      toast.success('Title updated');
+      const response = await axios.patch(`/tasks/${id}`, { title: newTitle.trim() });
+      setTasks(prev => prev.map(t => t._id === id ? { ...t, title: response.data.title } : t));
     } catch (err: any) {
-      toast.error('Change failed');
+      toast.error('Update failed');
     }
   };
 
   const filteredTasks = tasks.filter((task) => {
-    if (filterStatus === 'active' && task.completed) return false;
-    if (filterStatus === 'completed' && !task.completed) return false;
-    if (searchQuery.trim()) return task.title.toLowerCase().includes(searchQuery.toLowerCase());
-    return true;
+    const matchesFilter = filterStatus === 'all' || 
+      (filterStatus === 'active' && !task.completed) || 
+      (filterStatus === 'completed' && task.completed);
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
 
-  const activeCount = tasks.filter(t => !t.completed).length;
-
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      {/* Sidebar Navigation */}
-      <aside className="lg:w-72 bg-white border-r border-slate-200 p-8 flex flex-col">
-        <div className="mb-10">
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <CheckCircle className="text-blue-600" size={24} />
+    <div className="space-y-10">
+      {/* Editorial Header */}
+      <header className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 border-l-4 border-blue-600 pl-4">
             Task Manager
           </h1>
+          <p className="text-sm text-slate-400 pl-5 font-medium italic">Practical Assessment Release</p>
         </div>
+        <ClipboardList className="text-slate-200" size={40} />
+      </header>
 
-        <nav className="flex-1 space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Views</p>
-          {(['all', 'active', 'completed'] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filterStatus === status ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <span className="capitalize">{status}</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                {status === 'all' ? tasks.length : status === 'active' ? activeCount : tasks.length - activeCount}
-              </span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+      {/* Input Section */}
+      <div className="space-y-6">
+        <form onSubmit={handleAddTask} className="flex gap-3">
+          <input 
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="No tasks yet. Add one to get started!"
+            className="input-standard shadow-sm bg-white"
+            disabled={isSubmitting}
+          />
+          <button 
+            type="submit"
+            disabled={isSubmitting || !newTaskTitle.trim()}
+            className="btn-blue flex items-center justify-center gap-2 min-w-[124px]"
+          >
+            {isSubmitting ? (
+              <><Loader2 size={16} className="animate-spin" /> Adding...</>
+            ) : (
+              <><Plus size={18} strokeWidth={2.5} /> Add Task</>
+            )}
+          </button>
+        </form>
 
-      {/* Main Workspace */}
-      <main className="flex-1 p-6 lg:p-12 overflow-y-auto">
-        <div className="max-w-3xl mx-auto space-y-8">
-          {/* Action Row */}
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-            <h2 className="text-2xl font-bold text-slate-900">Your Tasks</h2>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tasks..."
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
-              />
-            </div>
-          </div>
-
-          {/* Add Task Box */}
-          <section className="bg-white border border-slate-200 rounded-xl p-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-            <form onSubmit={handleAddTask} className="flex gap-2">
-              <input 
-                type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="What needs to be done?"
-                className="flex-1 px-4 py-3 bg-transparent outline-none text-slate-700 font-medium"
-                disabled={isSubmitting}
-              />
-              <button 
-                type="submit"
-                disabled={isSubmitting || !newTaskTitle.trim()}
-                className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed m-1"
+        <div className="flex flex-wrap items-center justify-between gap-6 px-1">
+          <nav className="flex bg-slate-100 p-1 rounded-xl shadow-inner">
+            {(['all', 'active', 'completed'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-5 py-2 text-xs font-bold rounded-lg transition-all ${
+                  filterStatus === status 
+                    ? 'bg-white text-blue-600 shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
               >
-                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={18} /> Add Task</>}
+                <span className="capitalize">{status}</span>
               </button>
-            </form>
-          </section>
+            ))}
+          </nav>
 
-          {/* Task List */}
-          <div className="space-y-4">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {isLoading ? (
-                <div className="space-y-3">
-                  {[1,2,3].map(i => <div key={i} className="h-16 bg-white animate-pulse rounded-xl border border-slate-100" />)}
-                </div>
-              ) : filteredTasks.length === 0 ? (
-                <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-                  <p className="text-slate-400 font-medium">No tasks found in this view.</p>
-                </div>
-              ) : (
-                filteredTasks.map((task) => (
-                  <TaskItem 
-                    key={task._id}
-                    task={task}
-                    editingId={editingId}
-                    editValue={editValue}
-                    setEditValue={setEditValue}
-                    onToggle={handleToggleTask}
-                    onDelete={handleDeleteTask}
-                    onEdit={(t) => { setEditingId(t._id); setEditValue(t.title); setTimeout(() => editInputRef.current?.focus(), 50); }}
-                    onSaveEdit={handleUpdateTitle}
-                    onCancelEdit={() => setEditingId(null)}
-                    editInputRef={editInputRef}
-                  />
-                ))
-              )}
-            </AnimatePresence>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter objectives..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-semibold text-slate-700 outline-none focus:border-blue-200 focus:bg-white transition-all"
+            />
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Unified Task Ecosystem */}
+      <div className="space-y-4">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {isLoading ? (
+            <div className="py-20 text-center space-y-4">
+              <Loader2 className="mx-auto text-blue-200 animate-spin" size={32} />
+              <p className="text-sm font-semibold text-slate-300 tracking-widest uppercase">Initializing Stream...</p>
+            </div>
+          ) : filteredTasks.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="py-24 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-white/50"
+            >
+              <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
+                <Plus className="text-slate-200" size={24} />
+              </div>
+              <p className="text-sm font-bold text-slate-400">No tasks yet. Add one to get started!</p>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {filteredTasks.map((task) => (
+                <TaskItem 
+                  key={task._id}
+                  task={task}
+                  onToggle={handleToggleTask}
+                  onDelete={handleDeleteTask}
+                  onSaveEdit={handleUpdateTitle}
+                />
+              ))}
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Optimized Stats Footer */}
+      <footer className="pt-10 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-3">
+           <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100 text-slate-400">
+             {tasks.filter(t => !t.completed).length} Pending
+           </span>
+           <span className="bg-blue-50 px-2 py-1 rounded border border-blue-100 text-blue-400">
+             {tasks.filter(t => t.completed).length} Success
+           </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CheckCircle className="text-green-400" size={12} />
+          <span>Local Persistance Active</span>
+        </div>
+      </footer>
     </div>
   );
 }

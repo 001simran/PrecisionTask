@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Task Manager | Assignment Submission",
-  description: "A clean, performant Task Manager application focusing on core full-stack principles.",
+  title: "Task Manager",
+  description: "A clean and functional task management application.",
 };
 
 export default function RootLayout({
@@ -20,16 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans antialiased">
+    <html lang="en" className={`${inter.variable} antialiased`}>
+      <body className="min-h-screen font-sans bg-slate-50">
         <Providers>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-1">{children}</main>
+          <div className="max-w-xl mx-auto py-12 px-4">
+            {children}
           </div>
           <Toaster 
-            position="top-center"
+            position="bottom-right"
             toastOptions={{
-              className: 'border border-slate-200 shadow-lg text-sm font-medium',
+              className: 'text-sm font-medium border border-slate-100 shadow-xl',
+              duration: 3000,
             }}
           />
         </Providers>
