@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Manager Application - Candidate Submission
 
-## Getting Started
+This is a clean, modular, and professional Task Manager application built as part of a full-stack assessment. The project focus is on **Clarity, Correctness, and Clean Architecture.**
 
-First, run the development server:
+## 🚀 Getting Started
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup & Run
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:3000`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Run Automated Tests**:
+   ```bash
+   npm run test:api
+   ```
 
-## Learn More
+## 🏗️ Architecture & Organization
 
-To learn more about Next.js, take a look at the following resources:
+The project follows a **strict modular structure** to demonstrate separation of concerns and maintainability:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **`src/backend/`**: Contains pure logic, Mongoose models, and database utilities.
+- **`src/frontend/`**: Contains reusable UI components and client-side logic.
+- **`src/app/`**: Next.js App Router orchestration, global styles, and REST API routes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ⚙️ Persistence (The Hybrid Approach)
+To ensure the application is **fully portable and runnable** for the evaluation team without the need for a local MongoDB setup:
+- The app uses a **Fail-Safe Persistence Layer**.
+- It attempts to connect to MongoDB as the primary store.
+- **Automatic Fallback**: If MongoDB is unavailable, it seamlessly switches to **Local File Storage** (`data/tasks.json`).
+- This ensures a perfect "zero-config" experience for the recruiter.
 
-## Deploy on Vercel
+## ✨ Implemented Requirements
+- [x] **Full CRUD**: Create, View, Update Status, and Delete tasks.
+- [x] **API Integration**: Robust Next.js API routes with JSON responses.
+- [x] **Validation**: Title presence check and status validation.
+- [x] **Feedback**: Optimistic UI updates (instant response) + Toast notifications.
+- [x] **Filtering**: All / Active / Completed views.
+- [x] **Persistence**: MongoDB + JSON Fallback.
+- [x] **Automated Tests**: Custom logic verification suite included.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📝 Trade-offs & Assumptions
+- **Next.js API Routing**: I chose Next.js API routes (located in `/api/tasks`) as they are the industry standard for modern full-stack React applications, providing high performance and ease of deployment.
+- **Optimistic UI**: I prioritized a snappy user experience where tasks update instantly on the screen while the network request processes in the background.
+- **Portability**: I assumed the evaluator might want to run the project without a database, so I prioritized the JSON fallback mechanism.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Built with React 19, Next.js 15, TypeScript, MongoDB, and Tailwind CSS.*
