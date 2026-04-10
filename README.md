@@ -1,58 +1,111 @@
-# Task Manager Application - Candidate Submission
+# 🚀 PrecisionTask – Full Stack Task Manager
 
-This is a clean, modular, and professional Task Manager application built as part of a full-stack assessment. The project focus is on **Clarity, Correctness, and Clean Architecture.**
+A clean, modular, and production-ready Task Manager application built as part of a full-stack assessment.
+This project focuses on **clarity, scalability, and real-world architecture practices**.
+
+
+## 📸 Preview
+
+![Dashboard Overview](./public/screenshots/dashboard.png)
+![Task Filtering](./public/screenshots/filter.png)
+![Interaction States](./public/screenshots/hover.png)
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+
+* Node.js (v18+)
+* npm or yarn
 
 ### Setup & Run
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
 
-2. **Run Development Server**:
-   ```bash
-   npm run dev
-   ```
-   The application will be available at `http://localhost:3000`.
+```bash
+npm install
+npm run dev
+```
 
-3. **Run Automated Tests**:
-   ```bash
-   npm run test:api
-   ```
+App runs on: http://localhost:3000
 
-## 🏗️ Architecture & Organization
+### Run Tests
 
-The project follows a **strict modular structure** to demonstrate separation of concerns and maintainability:
-
-- **`src/backend/`**: Contains pure logic, Mongoose models, and database utilities.
-- **`src/frontend/`**: Contains reusable UI components and client-side logic.
-- **`src/app/`**: Next.js App Router orchestration, global styles, and REST API routes.
-
-## ⚙️ Persistence (The Hybrid Approach)
-To ensure the application is **fully portable and runnable** for the evaluation team without the need for a local MongoDB setup:
-- The app uses a **Fail-Safe Persistence Layer**.
-- It attempts to connect to MongoDB as the primary store.
-- **Automatic Fallback**: If MongoDB is unavailable, it seamlessly switches to **Local File Storage** (`data/tasks.json`).
-- This ensures a perfect "zero-config" experience for the recruiter.
-
-## ✨ Implemented Requirements
-- [x] **Full CRUD**: Create, View, Update Status, and Delete tasks.
-- [x] **API Integration**: Robust Next.js API routes with JSON responses.
-- [x] **Validation**: Title presence check and status validation.
-- [x] **Feedback**: Optimistic UI updates (instant response) + Toast notifications.
-- [x] **Filtering**: All / Active / Completed views.
-- [x] **Persistence**: MongoDB + JSON Fallback.
-- [x] **Automated Tests**: Custom logic verification suite included.
-
-## 📝 Trade-offs & Assumptions
-- **Next.js API Routing**: I chose Next.js API routes (located in `/api/tasks`) as they are the industry standard for modern full-stack React applications, providing high performance and ease of deployment.
-- **Optimistic UI**: I prioritized a snappy user experience where tasks update instantly on the screen while the network request processes in the background.
-- **Portability**: I assumed the evaluator might want to run the project without a database, so I prioritized the JSON fallback mechanism.
+```bash
+npm run test:api
+```
 
 ---
-*Built with React 19, Next.js 15, TypeScript, MongoDB, and Tailwind CSS.*
+
+## 🏗️ Architecture & Code Structure
+
+This project follows a **clean modular architecture**:
+
+* `src/backend/` → Business logic, DB models, utilities
+* `src/frontend/` → Reusable UI components
+* `src/app/` → Next.js App Router, API routes, global config
+
+✔️ Clear separation of concerns
+✔️ Scalable and maintainable design
+
+---
+
+## ⚙️ Persistence Strategy (Hybrid Approach)
+
+To ensure a **zero-setup experience for evaluators**:
+
+* Primary: MongoDB
+* Fallback: Local JSON (`data/tasks.json`)
+
+👉 Automatically switches if DB is unavailable
+
+---
+
+## ✨ Features
+
+* ✅ Full CRUD (Create, Read, Update, Delete tasks)
+* ⚡ Optimistic UI (instant updates)
+* 🔔 Toast notifications
+* 🔍 Task filtering (All / Active / Completed)
+* 🧠 Input validation
+* 🔌 REST API integration
+* 🧪 Automated API tests
+
+---
+
+## 📝 Key Design Decisions
+
+* **Next.js API Routes**
+  Used for performance, simplicity, and modern full-stack alignment
+
+* **Optimistic UI**
+  Prioritized user experience with real-time feedback
+
+* **Fail-safe Persistence**
+  Ensures the app runs even without database setup
+
+---
+
+## 🛠️ Tech Stack
+
+* React 19
+* Next.js 15 (App Router)
+* TypeScript
+* MongoDB
+* Tailwind CSS
+
+---
+
+## 📌 Why This Project Stands Out
+
+* Clean architecture (industry-level structure)
+* Real-world fallback strategy (rare in student projects)
+* Focus on UX + performance
+* Fully testable and portable
+
+---
+
+## 👨‍💻 Author
+
+**Simranjit Kaur**
+---
+*Built with ❤️ for a practical full-stack assessment.*
