@@ -85,7 +85,7 @@ To ensure a **zero-setup experience for evaluators**:
 
 ---
 
-⚖️ Assumptions & Trade-offs
+##⚖️ Assumptions & Trade-offs
 
 Chose Next.js API routes over a separate Express/Node server to keep the setup minimal and self-contained — one npm run dev is all that's needed.
 MongoDB is fully optional. The app automatically falls back to data/tasks.json if no database is configured, so evaluators can run it with zero setup.
